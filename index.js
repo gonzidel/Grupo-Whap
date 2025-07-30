@@ -67,11 +67,15 @@ async function startSock() {
   app.post("/publicar", async (req, res) => {
     const { grupoId, mensaje, imagenes } = req.body;
     try {
-      for (const url of imagenes) {
-        await sock.sendMessage(grupoId, { 
-          image: { url }, 
-          caption: mensaje 
-        });
+      if (imagenes && imagenes.length > 0) {
+        for (const url of imagenes) {
+          await sock.sendMessage(grupoId, { 
+            image: { url }, 
+            caption: mensaje 
+          });
+        }
+      } else {
+        await sock.sendMessage(grupoId, { text: mensaje });
       }
       res.status(200).send({ status: 'ok' });
     } catch (error) {
