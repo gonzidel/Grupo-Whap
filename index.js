@@ -62,8 +62,28 @@ async function startSock() {
       res.status(500).send({ error: err.message });
     }
   });
+
+  // Endpoint para publicar múltiples imágenes
+  app.post("/publicar", async (req, res) => {
+    const { grupoId, mensaje, imagenes } = req.body;
+    try {
+      for (const url of imagenes) {
+        await sock.sendMessage(grupoId, { 
+          image: { url }, 
+          caption: mensaje 
+        });
+      }
+      res.status(200).send({ status: 'ok' });
+    } catch (error) {
+      console.error('Error enviando mensaje:', error);
+      res.status(500).send({ status: 'error', error });
+    }
+  });
 }
 
 startSock();
 
-app.listen(3000, () => console.log("🚀 Servidor corriendo en http://localhost:3000"));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor Express corriendo en puerto ${PORT}`);
+});
