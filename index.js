@@ -75,6 +75,9 @@ async function startSock() {
         imagenes = [];
       }
 
+      // Sanitizar imagenes: remover URLs vacías o con solo espacios
+      imagenes = imagenes.filter(i => i && i.trim() !== "");
+
       console.log("📩 Recibido:", { grupoid, mensaje, imagenes });
 
       // Validar datos básicos
@@ -84,14 +87,15 @@ async function startSock() {
 
       if (imagenes.length > 0) {
         for (const url of imagenes) {
-          if (typeof url === "string" && url.startsWith("http")) {
+          if (url && url.trim() !== "") {
             await sock.sendMessage(grupoid, {
               image: { url },
               caption: mensaje,
             });
           }
         }
-      } else {
+      }
+      if (imagenes.length === 0 || imagenes.every(i => !i.trim())) {
         await sock.sendMessage(grupoid, { text: mensaje });
       }
 
