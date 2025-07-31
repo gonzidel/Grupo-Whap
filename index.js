@@ -65,19 +65,28 @@ async function startSock() {
 
   // Endpoint para publicar múltiples imágenes
   app.post("/publicar", async (req, res) => {
-    const { grupoId, mensaje, imagenes } = req.body;
+    const { grupoId, mensaje } = req.body;
+    let imagenes = req.body.imagenes;
+
+    // Si imagenes viene como string, convertirlo a array
+    if (typeof imagenes === "string") {
+      imagenes = [imagenes];
+    } else if (!imagenes) {
+      imagenes = [];
+    }
+
     try {
-      if (imagenes && imagenes.length > 0) {
+      if (imagenes.length > 0) {
         for (const url of imagenes) {
-          await sock.sendMessage(grupoId, { 
-            image: { url }, 
-            caption: mensaje 
+          await sock.sendMessage(grupoId, {
+            image: { url },
+            caption: mensaje,
           });
         }
       } else {
         await sock.sendMessage(grupoId, { text: mensaje });
       }
-      res.status(200).send({ status: 'ok' });
+      res.send("Mensaje enviado");
     } catch (error) {
       console.error('Error enviando mensaje:', error);
       res.status(500).send({ status: 'error', error });
