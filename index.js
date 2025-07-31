@@ -64,34 +64,41 @@ async function startSock() {
   });
 
   // Endpoint para publicar múltiples imágenes
-  app.post("/publicar", async (req, res) => {
+  app.post('/publicar', async (req, res) => {
     try {
-      const { grupoId, mensaje } = req.body;
-      let imagenes = req.body.imagenes;
-      
-      console.log("Body recibido:", req.body);
+      let { grupoid, mensaje, imagenes } = req.body;
 
-      // Si imagenes viene como string, convertirlo a array
+      // Si imagenes viene como string, convertir a array
       if (typeof imagenes === "string") {
         imagenes = [imagenes];
-      } else if (!imagenes) {
+      } else if (!imagenes || !Array.isArray(imagenes)) {
         imagenes = [];
+      }
+
+      console.log("📩 Recibido:", { grupoid, mensaje, imagenes });
+
+      // Validar datos básicos
+      if (!grupoid || !mensaje) {
+        return res.status(400).json({ error: "Falta grupoid o mensaje" });
       }
 
       if (imagenes.length > 0) {
         for (const url of imagenes) {
-          await sock.sendMessage(grupoId, {
-            image: { url },
-            caption: mensaje,
-          });
+          if (typeof url === "string" && url.startsWith("http")) {
+            await sock.sendMessage(grupoid, {
+              image: { url },
+              caption: mensaje,
+            });
+          }
         }
       } else {
-        await sock.sendMessage(grupoId, { text: mensaje });
+        await sock.sendMessage(grupoid, { text: mensaje });
       }
+
       res.status(200).json({ ok: true });
     } catch (error) {
-      console.error("X Error en /publicar:", error);
-      res.status(500).json({ error: error.message });
+      console.error("❌ Error en /publicar:", error);
+      res.status(500).json({ error: "Error interno del servidor" });
     }
   });
 }
